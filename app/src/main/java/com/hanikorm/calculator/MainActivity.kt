@@ -126,8 +126,8 @@ class MainActivity : AppCompatActivity() {
             } else {
                 display.text.toString().replace(" ", "") + number
             }
+        }
     }
-
     private fun onCommaButtonClicked() {
         val display = findViewById<TextView>(R.id.display)
         if (!temporaryValue.contains(".")) {
