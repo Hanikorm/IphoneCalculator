@@ -54,6 +54,8 @@ class MainActivity : AppCompatActivity() {
         buttonAC.setOnClickListener {
             display.text = "0"
             temporaryValue = "0"
+            firstValueEntered = ""
+            signSelectionVariable = ""
         }
 
         val buttonNumber9 = findViewById<Button>(R.id.buttonnumber9)
@@ -101,9 +103,16 @@ class MainActivity : AppCompatActivity() {
             onNumberButtonClicked("1")
         }
 
+        val buttonPercent = findViewById<Button>(R.id.buttonpercent)
+        buttonPercent.setOnClickListener {
+            onButtonPercentClicked()
+        }
+
         val buttonNumber0 = findViewById<Button>(R.id.buttonnull)
         buttonNumber0.setOnClickListener {
             if (temporaryValue.isNotEmpty() && temporaryValue != "0") {
+                onNumberButtonClicked("0")
+            } else if (temporaryValue == "0") {
                 onNumberButtonClicked("0")
             }
         }
@@ -112,12 +121,15 @@ class MainActivity : AppCompatActivity() {
     private fun onNumberButtonClicked(number: String) {
         val display = findViewById<TextView>(R.id.display)
         val valueWithoutSign = temporaryValue.trimStart('-')
+
         if (valueWithoutSign.length < 9) {
+            // Разрешаем ввод 0 после знака
             temporaryValue = if (temporaryValue == "0" && number == "0") {
                 "0"
             } else if (temporaryValue == "-0" && number == "0") {
                 "-0"
-            } else if (temporaryValue == "0" || temporaryValue == "-0") {
+            } else if ((temporaryValue == "0" || temporaryValue == "-0") && number != "0") {
+                // Заменяем "0" на другое число
                 if (temporaryValue.startsWith("-")) {
                     "-$number"
                 } else {
@@ -127,12 +139,38 @@ class MainActivity : AppCompatActivity() {
                 display.text.toString().replace(" ", "") + number
             }
         }
+        display.text = temporaryValue
     }
     private fun onCommaButtonClicked() {
         val display = findViewById<TextView>(R.id.display)
         if (!temporaryValue.contains(".")) {
             temporaryValue = display.text.toString() + "."
             display.text = temporaryValue
+        }
+    }
+
+    private fun  onButtonPercentClicked(){
+        val display = findViewById<TextView>(R.id.display)
+        val firstValue = firstValueEntered.toDoubleOrNull()
+        val secondValue = temporaryValue.toDoubleOrNull()
+        if (firstValue != null && secondValue != null){
+            temporaryValue = when (signSelectionVariable){
+                "+" -> (firstValue + (firstValue * secondValue / 100)).toString()
+                "-" -> (firstValue - (firstValue * secondValue / 100)).toString()
+                "*" -> (firstValue * (secondValue / 100)).toString()
+                "/" -> if (secondValue != 0.0) {
+                    (firstValue / (secondValue / 100)).toString()
+                }else {
+                    "Ошибка"
+                }
+                else -> "Ошибка"
+            }
+            display.text = formatNumber(temporaryValue)
+        } else if (secondValue != null) {
+            temporaryValue = (secondValue / 100).toString()
+            display.text = formatNumber(temporaryValue)
+        } else {
+            display.text = "Ошибка"
         }
     }
 
@@ -171,7 +209,14 @@ class MainActivity : AppCompatActivity() {
             "/" -> {
                 temporaryValue = (firstValueEntered.toDouble() / temporaryValue.toDouble()).toString()
                 dropLastNumberOnClicked()
+                if (temporaryValue.toDouble() == 0.0) {
+                    display.text = "Error"
+                    return
+                } else {
+                    temporaryValue = (firstValueEntered.toDouble() / temporaryValue.toDouble()).toString()
+                }
             }
+
         }
         display.text = formatNumber(temporaryValue)
     }
